@@ -1,9 +1,8 @@
 # LG TV 2012 Series Remote
 
-A remote control interface for LG 2012 Series TV's.
+NodeJS module to control LG 2012 Series TV's.
 
 Built specifically to support the homebridge-lgtv-2012 plugin.
-
 
 ## Features
 * Power on/off
@@ -13,3 +12,36 @@ Built specifically to support the homebridge-lgtv-2012 plugin.
 
 ## Install
 ```npm install -g lgtv-2012```
+
+## Usage Examples
+
+- Get/Set Volume:
+```js
+    this.connect((tv) => {
+        tv.get_volume( (volume) => {
+            console.log('Channel: ' + volume.level + ' and Mute is ' + volume.mute? 'On':'Off')
+
+            if(volume.mute || volume.level != 10) {
+                tv.set_volume(10, null)
+            }
+        })
+    })
+```
+
+- Get/Set Channel
+```js
+    this.connect((tv) => {
+        tv.get_channel( (channel) => {
+            console.log(`Channel: #${channel.number} ${channel.title}`);
+            console.log(`Program: ${channel.program}`);
+        })
+        tv.set_channel(107, null)
+    })
+```
+
+- Turn Off
+```js
+    this.connect((tv) => {
+        tv.turn_off(null)
+    })
+```

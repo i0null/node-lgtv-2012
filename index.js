@@ -11,8 +11,9 @@ function lgtv(config) {
     this.agent = null;
     this.debug = true;
 
-    this.mute_threshold = 2
+    this.min_volume = 2
     this.false_run = false
+    this.locked = false
 
     var commands = {
         // Numbers
@@ -75,11 +76,10 @@ function lgtv(config) {
     function get(path, cb) {
         getAgent((agent) => { http.get({ host: host, port: port, path: path, agent: agent}, (response) => {
             var b = ''; 
-            // Append the big D
             response.on('data', (d) => { b += d; });
             response.on('end', (err) => { cb(b); });
         }).on('error', function(error) {
-            log('Error: Unable to get ' + path + ':' + error.message)
+            log(`Error on GET ${path} ${error.message}`)
             cb('');
         }) });
     }
@@ -126,7 +126,6 @@ function lgtv(config) {
         }
     }
     this.send_command = send_command
-    this.locked = false
 
     // Send Multiple Commands
     function send_commands(cmds, cb) {
@@ -149,9 +148,8 @@ function lgtv(config) {
         get('/roap/api/data?target=volume_info', (body) => {
             var doc = new dom().parseFromString(body);
             try {
-                var volume = parseInt(xpath.select('//level/text()', doc).toString())
                 cb({ 
-                    level: volume,
+                    level: parseInt(xpath.select('//level/text()', doc).toString()),
                     mute: xpath.select('//mute/text()', doc).toString() == 'true'
                 })
             } catch(error) {
@@ -160,65 +158,60 @@ function lgtv(config) {
             }
         })
     }
-
     
     this.set_volume = function (to, cb) {
         this.get_volume((volume) => {
             if( diff = parseInt(to) - volume.level) {
                 var action = 'UP';
                 var cmds = [];
-                if(to >= this.mute_threshold == volume.mute) cmds.push('MUTE')
+                if(to >= this.min_volume == volume.mute) cmds.push('MUTE')
                 if(diff < 0)  { action = 'DOWN'; diff *= -1; } 
                 while(diff-- > 0) cmds.push('VOL_' + action)
                 if(cmds.length) send_commands(cmds, (err) => { cb(err); })
             }  else {
-                log('TV is already at volume ' + to)
+                log('Already at volume ' + to)
                 cb(false);
             }
         })
     };
 
     this.pair_request = function(cb) {
-        var data = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthKeyReq</type></auth>`;
-        post('/roap/api/auth', data, (body) => {
+        var req = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthKeyReq</type></auth>`;
+        post('/roap/api/auth', req, (body) => {
             //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
             cb(true);
         })
     };
 
     this.new_session = function(key, cb) {
-        if(parseInt(key) > 100000) {
-            post('/roap/api/auth', `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthReq</type><value>${key}</value></auth>`, (body) => {
+        key = parseInt(key);
+        if(key && key > 99999 && key <= 999999) {
+            var req = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthReq</type><value>${key}</value></auth>`;
+            post('/roap/api/auth', req, (body) => {
                 //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
                 cb(this);
             })
         } else {
-            log(`invalid auth key  ${key}`);
+            log(`invalid auth key ${key}`);
             cb(null);
         }
     };
 
-    function channel(cb) {
+    this.get_channel = function(cb) {
         // Get Channel
         get('/roap/api/data?target=cur_channel', (body) => {
             try {
                 var body = new dom().parseFromString(body);
                 cb({
-                    channel: parseInt(xpath.select('//major/text()', body).toString()),
-                    name: xpath.select('//chname/text()', body).toString(),
+                    number: parseInt(xpath.select('//major/text()', body).toString()),
+                    title: xpath.select('//chname/text()', body).toString(),
                     program: xpath.select('//progName/text()', body).toString()
                 })
             } catch(error) {
-                log('get channel error: ' + action + ' by ' + diff);
                 cb({ channel: 0, name: 'Unknown', program: 'Unknown' });
             }
         })
     }
-
-    // Get Channel Info
-    this.get_channel = function (cb) { channel((ch) => { cb(ch.channel); }); };
-    this.get_title = function (cb) { channel((ch) => { cb(ch.name); }); };
-    this.get_program = function (cb) { channel((ch) => { cb(ch.program); }); };
 
     // Get Channel
     this.get_channels = function(cb) {
@@ -234,7 +227,7 @@ function lgtv(config) {
                     }
                 });
             } catch(error) {
-                log('get channel error: ' + action + ' by ' + diff);
+                log(`error get_channels: ${error}`);
             } finally {
                 cb(channels);
             }
