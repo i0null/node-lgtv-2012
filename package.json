@@ -1,28 +1,36 @@
 {
-  "name": "lgtv-2012",
-  "readme": "README.md",
-  "path": "",
-  "dependencies": {
-    "xpath": "^0.0.24",
-    "xmldom": "^0.1.27"
-  },
-  "description": "Network remote for LG 2012 Series TV's",
-  "devDependencies": {},
-  "directories": {},
-  "engines": {
-    "homebridge": ">=0.2.0",
-    "node": ">=0.12.0"
-  },
-  "keywords": [
-    "lgtv", "lgtv-2012"
-  ],
-  "license": "MIT",
-  "main": "index.js",
-  "maintainers": [
-    {
-      "name": "Shane Kelly", "email": "i0null@gmail.com"
-    }
-  ],
-  "optionalDependencies": {},
-  "version": "0.1.4"
+    "name": "lgtv-2012",
+    "description": "Network remote for LG 2012 Series TV's",
+    "bugs": { 
+        "url" : "https://github.com/i0null/node-lgtv-2012/issues"
+    },
+    "path": "",
+    "dependencies": {
+        "xpath": "^0.0.24",
+        "xmldom": "^0.1.27"
+    },
+    "devDependencies": {},
+    "directories": {},
+    "engines": {
+        "homebridge": ">=0.2.0",
+        "node": ">=0.12.0"
+    },
+    "keywords": [
+        "lgtv", "lgtv-2012"
+    ],
+    "license": {
+        "type": "MIT",
+        "url": "https://www.opensource.org/licenses/mit-license.php"
+    },
+    "main": "index.js",
+    "maintainers":[{
+        "name": "Shane Kelly", "email": "i0null@gmail.com"
+    }],
+    "optionalDependencies": {},
+    "readme": "README.md",
+    "repository": {
+        "type" : "git",
+        "url" : "https://github.com/i0null/node-lgtv-2012.git"
+    },
+    "version": "0.1.5"
 }
