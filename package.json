@@ -18,10 +18,7 @@
     "keywords": [
         "lgtv", "lgtv-2012"
     ],
-    "license": {
-        "type": "MIT",
-        "url": "https://www.opensource.org/licenses/mit-license.php"
-    },
+    "license": "MIT",
     "main": "index.js",
     "maintainers":[{
         "name": "Shane Kelly", "email": "i0null@gmail.com"
@@ -32,5 +29,5 @@
         "type" : "git",
         "url" : "https://github.com/i0null/node-lgtv-2012.git"
     },
-    "version": "0.1.5"
+    "version": "0.1.6"
 }
