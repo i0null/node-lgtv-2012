@@ -16,7 +16,7 @@ Built specifically to support the homebridge-lgtv-2012 plugin.
 ## Get TV Pairing key
 
 ```bash 
-node -e "lg = require('lgtv-2012').lgtv; tv = new lg({host: '192.168.0.42'}); tv.pair_request()"
+TV_IP=172.16.0.10 node -e "lg = require('lgtv-2012').lgtv; tv = new lg({host: '$TV_IP'}); tv.pair_request()"
 ```
 
 ## Usage Examples
