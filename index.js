@@ -69,7 +69,7 @@ function lgtv(config) {
         if (http_agent === null) http_agent = new http.Agent({
             maxSockets: 1, keepAlive: true, keepAliveMsecs: 500 
         })
-        cb(http_agent)
+        if(cb) cb(http_agent)
     }
 
     // --- [ HTTP Request Methods ] ---
@@ -77,10 +77,10 @@ function lgtv(config) {
         getAgent((agent) => { http.get({ host: host, port: port, path: path, agent: agent}, (response) => {
             var body = ''; 
             response.on('data', (data) => { body += data; });
-            response.on('end', (err) => { cb(body); });
+            response.on('end', (err) => { if(cb) cb(body); });
         }).on('error', function(error) {
             log(`Error on GET ${path} ${error.message}`)
-            cb('');
+            if (cb) cb('');
         }) });
     }
 
@@ -97,11 +97,11 @@ function lgtv(config) {
             }, (response) => { response.setEncoding('utf8');
                 var body = ''; response.on('data', (data) => { body += data; });
                 response.on('end', (err) => { 
-                    cb(body); 
+                    if(cb) cb(body); 
                 });
             }).on('error', function(error) {
                 log(`Error: Unable to get ${path} ${error.message}`);
-                cb('');
+                if(cb) cb('');
             });
             request.write(data);
             request.end();
@@ -117,10 +117,10 @@ function lgtv(config) {
             post('/roap/api/command', `<?xml version='1.0' encoding='utf-8'?><command><name>HandleKeyInput</name><value>${cmd}</value></command>`, (body) => {
                 try {
                     var doc = new dom().parseFromString(body);
-                    cb(xpath.select('//ROAPErrorDetail/text()', doc).toString() == 'OK')
+                    if(cb) cb(xpath.select('//ROAPErrorDetail/text()', doc).toString() == 'OK')
                 } catch(error) {
                     log(`error send_command:  ${error.message}`)
-                    cb(false)
+                    if(cb) cb(false)
                 }
             });
         }
@@ -130,7 +130,7 @@ function lgtv(config) {
     // Send Multiple Commands
     function send_commands(cmds, cb) {
         function callback(value) {
-            cb(value)
+            if (cb) cb(value)
             this.locked = false
         }
         function run() { 
@@ -148,13 +148,13 @@ function lgtv(config) {
         get('/roap/api/data?target=volume_info', (body) => {
             var doc = new dom().parseFromString(body);
             try {
-                cb({ 
+                if(cb) cb({ 
                     level: parseInt(xpath.select('//level/text()', doc).toString()),
                     mute: xpath.select('//mute/text()', doc).toString() == 'true'
                 })
             } catch(error) {
                 log('error get_volume: ' + error.message)
-                cb({ level: 0, mute: false })
+                if(cb) cb({ level: 0, mute: false })
             }
         })
     }
@@ -167,19 +167,18 @@ function lgtv(config) {
                 if(to >= this.min_volume == volume.mute) cmds.push('MUTE')
                 if(diff < 0)  { action = 'DOWN'; diff *= -1; } 
                 while(diff-- > 0) cmds.push('VOL_' + action)
-                if(cmds.length) send_commands(cmds, (err) => { cb(err); })
+                if(cmds.length) send_commands(cmds, (err) => { if(cb) cb(err); })
             }  else {
                 log('Already at volume ' + to)
-                cb(false);
+                if(cb) cb(false);
             }
         })
     };
 
     this.pair_request = function(cb) {
-        var req = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthKeyReq</type></auth>`;
-        post('/roap/api/auth', req, (body) => {
+        post('/roap/api/auth', "<?xml version='1.0' encoding='utf-8'?><auth><type>AuthKeyReq</type></auth>", (body) => {
             //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
-            cb(true);
+            if(cb) cb(true);
         })
     };
 
@@ -189,11 +188,11 @@ function lgtv(config) {
             var req = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthReq</type><value>${key}</value></auth>`;
             post('/roap/api/auth', req, (body) => {
                 //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
-                cb(this);
+                if(cb) cb(this);
             })
         } else {
             log(`invalid auth key ${key}`);
-            cb(null);
+            if(cb) cb(null);
         }
     };
 
@@ -202,13 +201,13 @@ function lgtv(config) {
         get('/roap/api/data?target=cur_channel', (body) => {
             try {
                 var body = new dom().parseFromString(body);
-                cb({
+                if(cb) cb({
                     number: parseInt(xpath.select('//major/text()', body).toString()),
                     title: xpath.select('//chname/text()', body).toString(),
                     program: xpath.select('//progName/text()', body).toString()
                 })
             } catch(error) {
-                cb({ channel: 0, name: 'Unknown', program: 'Unknown' });
+                if(cb) cb({ channel: 0, name: 'Unknown', program: 'Unknown' });
             }
         })
     }
@@ -229,13 +228,13 @@ function lgtv(config) {
             } catch(error) {
                 log(`error get_channels: ${error}`);
             } finally {
-                cb(channels);
+                if(cb) cb(channels);
             }
         });
     };
 
     this.turn_off = function(cb) {
-        send_command('POWER', (err) => { cb(err); });
+        send_command('POWER', (err) => { if (cb) cb(err); });
         getAgent((agent) => { agent.destroy(); });
     };
 
@@ -244,11 +243,11 @@ function lgtv(config) {
         if (cmds.length && parseInt(to_channel)) {
             log('Setting TV [' + host + '] to channel: ' + to_channel); 
             cmds.push('ENTER');
-            if(this.false_run) { cb(false) }
-            else { send_commands(cmds, (err) => { cb(true) }) }
+            if(this.false_run) { if(cb) cb(false) }
+            else { send_commands(cmds, (err) => { if(cb) cb(true) }) }
         } else {
             log('Not a valid channel'); 
-            cb(false)
+            if(cb) cb(false)
         }
     }
 }
