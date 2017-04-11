@@ -75,8 +75,7 @@ function lgtv(config) {
     // --- [ HTTP Request Methods ] ---
     function get(path, cb) {
         getAgent((agent) => { http.get({ host: host, port: port, path: path, agent: agent}, (response) => {
-            var body = ''; 
-            response.on('data', (data) => { body += data; });
+            var body = ''; response.on('data', (d) => { body += d; });
             response.on('end', (err) => { if(cb) cb(body); });
         }).on('error', function(error) {
             log(`Error on GET ${path} ${error.message}`)
@@ -95,7 +94,7 @@ function lgtv(config) {
                 agent: agent, host: host, port: port,
                 method: 'POST', path: path, headers: headers, 
             }, (response) => { response.setEncoding('utf8');
-                var body = ''; response.on('data', (data) => { body += data; });
+                var body = ''; response.on('data', (d) => { body += d; });
                 response.on('end', (err) => { 
                     if(cb) cb(body); 
                 });
