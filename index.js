@@ -177,7 +177,7 @@ function lgtv(config) {
     this.pair_request = function(cb) {
         post('/roap/api/auth', "<?xml version='1.0' encoding='utf-8'?><auth><type>AuthKeyReq</type></auth>", (body) => {
             //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
-            if(cb) cb(true);
+            if(cb) cb(body);
         })
     };
 
