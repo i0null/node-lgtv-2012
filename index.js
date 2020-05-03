@@ -182,17 +182,11 @@ function lgtv(config) {
     };
 
     this.new_session = function(key, cb) {
-        key = parseInt(key);
-        if(key && key > 99999 && key <= 999999) {
-            var req = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthReq</type><value>${key}</value></auth>`;
-            post('/roap/api/auth', req, (body) => {
-                //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
-                if(cb) cb(this);
-            })
-        } else {
-            log(`invalid auth key ${key}`);
-            if(cb) cb(null);
-        }
+        var req = `<?xml version='1.0' encoding='utf-8'?><auth><type>AuthReq</type><value>${key}</value></auth>`;
+        post('/roap/api/auth', req, (body) => {
+            //var session = xpath.select('//session/text()', new dom().parseFromString(body)).toString()
+            if(cb) cb(this);
+        })
     };
 
     this.get_channel = function(cb) {
